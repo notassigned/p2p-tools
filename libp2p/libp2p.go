@@ -57,14 +57,7 @@ func GeneratePrivKey() (keyBytes []byte, err error) {
 }
 
 /*
-A constructor function that generates and returns a P2P object.
-
-Constructs a libp2p host with TLS encrypted secure transportation that works over a TCP
-transport connection using a Yamux Stream Multiplexer and uses UPnP for the NAT traversal.
-
-A Kademlia DHT is then bootstrapped on this host using the default peers offered by libp2p
-and a Peer Discovery service is created from this Kademlia DHT. The PubSub handler is then
-created on the host using the peer discovery service created prior.
+Generates and bootstraps a libp2p node
 */
 func NewP2P() *P2P {
 	// Setup a background context
@@ -119,7 +112,7 @@ func FindPeers(p2p *P2P, service string, is_cid bool) int {
 	// Find the other providers for the service CID
 	peerchan := p2p.KadDHT.FindProvidersAsync(p2p.Ctx, cidvalue, 0)
 
-	return handlePeerDiscovery(p2p.Host, peerchan)
+	return outputPeerDiscovery(p2p.Host, peerchan)
 }
 
 // Advertise a service on the DHT
@@ -134,40 +127,6 @@ func (p2p *P2P) Advertise(service string) {
 	// Debug log
 	logrus.Debugln("Advertised:", service)
 	logrus.Debugln("TTL:", ttl)
-}
-
-// A method of P2P to connect to service peers.
-// This method uses the Provide() functionality of the Kademlia DHT directly to announce
-// the ability to provide the service and then disovers all peers that provide the same.
-// The peer discovery is handled by a go-routine that will read from a channel
-// of peer address information until the peer channel closes
-func (p2p *P2P) AnnounceConnect(service string) {
-	// Generate the Service CID
-	cidvalue := generateCID(service)
-	// Trace log
-	logrus.Traceln("Generated the Service CID.")
-
-	// Announce that this host can provide the service CID
-	err := p2p.KadDHT.Provide(p2p.Ctx, cidvalue, true)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err.Error(),
-		}).Fatalln("Failed to Announce Service CID!")
-	}
-	// Debug log
-	logrus.Debugln("Announced the service.")
-	// Sleep to give time for the advertisment to propogate
-	time.Sleep(time.Second * 5)
-
-	// Find the other providers for the service CID
-	peerchan := p2p.KadDHT.FindProvidersAsync(p2p.Ctx, cidvalue, 0)
-	// Trace log
-	logrus.Traceln("Discovered Service Peers.")
-
-	// Connect to peers as they are discovered
-	go handlePeerDiscovery(p2p.Host, peerchan)
-	// Debug log
-	logrus.Debugln("Started Peer Connection Handler.")
 }
 
 // A function that generates the p2p configuration options and creates a
@@ -208,16 +167,10 @@ func setupHost(ctx context.Context) (host.Host, *dht.IpfsDHT) {
 	quicMuladdr6, err3 := multiaddr.NewMultiaddr("/ip6/::/udp/0/quic")
 	listen := libp2p.ListenAddrs(quicMuladdr6, quicMuladdr4, tcpMuladdr6, tcpMuladdr4)
 	// Handle any potential error
-	if err4 != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err4.Error(),
-		}).Fatalln("Failed to Generate P2P Address Listener Configuration!")
-	}
-	if err6 != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err6.Error(),
-		}).Fatalln("Failed to Generate P2P Address Listener Configuration!")
-	}
+	checkErr(err)
+	checkErr(err1)
+	checkErr(err2)
+	checkErr(err3)
 
 	// Trace log
 	logrus.Traceln("Generated P2P Address Listener Configuration.")
@@ -355,8 +308,8 @@ func bootstrapDHT(ctx context.Context, nodehost host.Host, kaddht *dht.IpfsDHT) 
 }
 
 // A function that outputs all peers recieved from a
-// channel of peer address information. Meant to be started as a go routine.
-func handlePeerDiscovery(nodehost host.Host, peerchan <-chan peer.AddrInfo) int {
+// channel of peer address information. Can be started as a go routine.
+func outputPeerDiscovery(nodehost host.Host, peerchan <-chan peer.AddrInfo) int {
 	// Iterate over the peer channel
 	total := 0
 	for peer := range peerchan {
