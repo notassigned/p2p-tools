@@ -10,7 +10,7 @@ Install Go 1.17 or later
 ### Clone and build
 
 ```
-git clone https://github.com/notassigned/p2p-tools
+git clone https://github.com/notassigned/p2p-tools.git
 cd p2p-tools
 go build
 ./p2p-tools
