@@ -78,7 +78,7 @@ $ ./p2p-tools dht content "test"
 ## Provide content on the DHT
 Node will advertize the string on the DHT until the program is stopped.
 ```
-./p2p-tools provide "test"
+$ ./p2p-tools provide "test"
 Node ID: QmPQdpPUCg1C96BvQjERJcGh5FSWUFhJodqojZsvHTquoJ
 Providing test
 
