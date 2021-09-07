@@ -60,8 +60,7 @@ func PubsubRun(r *cmd.Root, c *cmd.Sub) {
 		for {
 			if flags.MultiLine {
 				input := getLines(scn)
-				fmt.Println(len(input))
-				fmt.Println("Enter pressed")
+				topic.Publish(node.Ctx, input)
 			} else {
 				input, err := reader.ReadString('\n')
 				checkErr(err)
