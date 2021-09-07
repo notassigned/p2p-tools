@@ -34,7 +34,7 @@ type Identity struct {
 func GenKeyRun(r *cmd.Root, c *cmd.Sub) {
 
 	// Generate key pair and convert to serialized versions
-	privKey, pubKey, err := p2p.GeneratePrivKey()
+	privKey, pubKey, err := p2p.GenerateKeyPair()
 	checkErr(err)
 	pubKeyMarshalled, err := crypto.MarshalPublicKey(pubKey)
 	checkErr(err)
