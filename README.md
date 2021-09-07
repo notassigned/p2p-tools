@@ -1,4 +1,4 @@
-# p2p-tools for [libp2p](https://github.com/libp2p/libp2p")
+# p2p-tools for [libp2p](https://github.com/libp2p/libp2p)
 
 ## Overview
 Command line tools to perform DHT lookups, ping peers, and more.
