@@ -47,12 +47,8 @@ type P2P struct {
 	PubSub *pubsub.PubSub
 }
 
-func GeneratePrivKey() (keyBytes []byte, err error) {
-	privKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
-	if err != nil {
-		return
-	}
-	keyBytes, err = crypto.MarshalPrivateKey(privKey)
+func GenerateKeyPair() (privKey crypto.PrivKey, pubKey crypto.PubKey, err error) {
+	privKey, pubKey, err = crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
 	return
 }
 
