@@ -21,7 +21,8 @@ var Pubsub = cmd.Sub{
 }
 
 type PubsubFlags struct {
-	MultiLine bool `long:"multi" short:"m" desc:"Enable multiline input. Press Ctrl+] on its own line then Enter to send"`
+	MultiLine  bool `long:"multi" short:"m" desc:"Enable multiline input. Press Ctrl+] on its own line then Enter to send"`
+	OutputText bool `long:"text" short:"t" desc:"Output message text rather than entire message struct"`
 }
 
 type PubsubArgs struct {
@@ -36,7 +37,7 @@ func PubsubRun(r *cmd.Root, c *cmd.Sub) {
 	flags := c.Flags.(*PubsubFlags)
 	args := c.Args.(*PubsubArgs)
 
-	//subscribe to the topic
+	//create node and subscribe to the topic
 	node := p2p.NewP2P()
 	topic, err := node.PubSub.Join(args.Topic)
 	checkErr(err)
@@ -52,8 +53,13 @@ func PubsubRun(r *cmd.Root, c *cmd.Sub) {
 		for {
 			msg, err := subscription.Next(node.Ctx)
 			checkErr(err)
-			msgJson, err := json.MarshalIndent(msg, "", "  ")
-			fmt.Println(string(msgJson[:]) + ",")
+			if flags.OutputText {
+				fmt.Println("From: " + msg.ReceivedFrom.Pretty())
+				fmt.Println(string(msg.Data[:]))
+			} else {
+				msgJson, _ := json.MarshalIndent(msg, "", "  ")
+				fmt.Println(string(msgJson[:]) + ",")
+			}
 		}
 	case "publish":
 		//read messages from the console and publish them in the topic
@@ -68,7 +74,6 @@ func PubsubRun(r *cmd.Root, c *cmd.Sub) {
 			}
 		}
 	}
-
 }
 
 //enables getting multiline input e.g. paste
